@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import data_required, Length, Email, EqualTo, ValidationError
 from flask_blog.models import User, Post
@@ -27,3 +28,16 @@ class LoginForm(FlaskForm):
                              validators=[data_required(), Length(min=8, max=32)])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
+
+class UpdateForm(FlaskForm):
+    username = StringField('Username',
+                           validators=[data_required(), Length(min=6, max=20)])
+    email = StringField('Email',
+                        validators=[data_required(), Email()])
+    submit = SubmitField('Update')
+
+    def validate_email(self, email):
+        if email.data != current_user.email:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError('email exist already!')
