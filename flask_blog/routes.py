@@ -78,5 +78,14 @@ def logout():
 @login_required
 def account():
     form = UpdateForm()
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        db.session.commit()
+        flash('your account has been apdated', 'success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
     image_file = url_for('static', filename='images/' + current_user.image_file)
     return render_template('account.html', title='My Account', image_file=image_file, form=form)
