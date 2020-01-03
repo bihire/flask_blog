@@ -1,3 +1,5 @@
+import os
+import secrets
 from flask import render_template, url_for, flash, redirect, request
 from flask_blog import app, db, bcrypt
 from flask_blog.forms import RegistrationForm, LoginForm, UpdateForm
@@ -5,7 +7,7 @@ from flask_blog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 
 
-posts=[
+posts = [
     {
         "title": "this the first title",
         "author": "bihire",
@@ -21,6 +23,7 @@ posts=[
     }
 ]
 
+
 @app.route("/")
 def home():
     return render_template('home.html', posts=posts)
@@ -31,13 +34,14 @@ def about():
     return render_template('about.html')
 
 
-@app.route("/register", methods=['GET','POST'])
+@app.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(
+            form.password.data).decode('utf-8')
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -53,16 +57,16 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    
+
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password,form.password.data):
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
-            return redirect (next_page) if next_page else redirect(url_for('home'))
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('wrong email or password', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -74,11 +78,27 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route("/account")
+def save_picture(form_picture):
+    # print('bro we are here')
+    random_name = secrets.token_hex(8)
+    _, file_ext = os.path.splitext(form_picture.filename)
+    picture_name = random_name + file_ext
+    picture_path = os.path.join(app.root_path, 'static/images', picture_name)
+    form_picture.save(picture_path)
+
+    return picture_name
+
+
+@app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateForm()
     if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            old_file = os.path.join(app.root_path, 'static/images', current_user.image_file)
+            os.remove(old_file)
+            current_user.image_file = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
@@ -87,5 +107,6 @@ def account():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-    image_file = url_for('static', filename='images/' + current_user.image_file)
+    image_file = url_for('static', filename='images/' +
+                         current_user.image_file)
     return render_template('account.html', title='My Account', image_file=image_file, form=form)
