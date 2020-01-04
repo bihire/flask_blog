@@ -82,8 +82,9 @@ def account():
     if form.validate_on_submit():
         if form.picture.data:
             picture_file = save_picture(form.picture.data)
-            old_file = os.path.join(app.root_path, 'static/images', current_user.image_file)
-            os.remove(old_file)
+            if current_user.image_file != 'default.jpg':
+                old_file = os.path.join(app.root_path, 'static/images', current_user.image_file)
+                os.remove(old_file)
             current_user.image_file = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
@@ -132,3 +133,14 @@ def update_post(post_id):
         form.title.data = post.title
         form.content.data = post.content
     return render_template('create_post.html', title='Update Post',legend='Update Post', form=form)
+
+
+@app.route("/post/int:<post_id>/delete", methods=['GET', 'POST'])
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.user_id != current_user.id:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Your post has been deleted!', 'success')
+    return redirect(url_for('home'))
