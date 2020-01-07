@@ -112,13 +112,14 @@ def create_post():
         return redirect(url_for('home'))
     return render_template('create_post.html', title='New Post',legend='New Post', form=form)
 
-@app.route("/post/int:<post_id>")
+
+@app.route("/post/<int:post_id>")
 def view_post(post_id):
     post = Post.query.get_or_404(post_id)
     return render_template('specific_post.html', title=post.title, post=post)
 
 
-@app.route("/post/int:<post_id>/update", methods=['GET', 'POST'])
+@app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
 def update_post(post_id):
     post = Post.query.get_or_404(post_id)
     if post.user_id != current_user.id:
@@ -136,7 +137,7 @@ def update_post(post_id):
     return render_template('create_post.html', title='Update Post',legend='Update Post', form=form)
 
 
-@app.route("/post/int:<post_id>/delete", methods=['GET', 'POST'])
+@app.route("/post/<int:post_id>/delete", methods=['GET', 'POST'])
 def delete_post(post_id):
     post = Post.query.get_or_404(post_id)
     if post.user_id != current_user.id:
@@ -145,3 +146,13 @@ def delete_post(post_id):
     db.session.commit()
     flash('Your post has been deleted!', 'success')
     return redirect(url_for('home'))
+
+@app.route("/user/<int:user_id>")
+def user_posts(user_id):
+    page = request.args.get('page', type=int, default=1)
+    user = User.query.filter_by(id=user_id).first_or_404()
+    print(user)
+    posts = Post.query.filter_by(author=user)\
+        .order_by(Post.created_on.desc())\
+        .paginate(page=page, per_page=5)
+    return render_template('user_posts.html', posts=posts, user=user)

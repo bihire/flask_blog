@@ -1,6 +1,7 @@
 
-    {% extends "layout.html"%}
+    {% extends "layout.html" %}
     {% block content %}
+    <h1 class="mb-4">Posts by {{ user.username }} ({{ posts.total }})</h1>
         {% for post in posts.items %}
 
         <article class="media content-section">
@@ -8,7 +9,6 @@
             <div class="media-body">
                 <div class="article-metadata">
                     <a class="mr-2" href="{{ url_for('user_posts', user_id=post.user_id) }}">{{ post.author.username }}</a>
-
                     <small class="text-muted">{{ post.created_on.strftime('%Y-%m-%d') }}</small>
                 </div>
                 <h2><a class="article-title" href="{{ url_for('view_post', post_id=post.id )}}">{{ post.title }}</a></h2>
@@ -19,9 +19,9 @@
         {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
             {% if page_num %}
                 {% if posts.page == page_num %}
-                    <a href="{{ url_for('home', page=page_num )}}" class="btn btn-info mb-4" >{{ page_num }}</a>
+                    <a href="{{ url_for('user_posts',user_id=user.id , page=page_num )}}" class="btn btn-info mb-4" >{{ page_num }}</a>
                 {% else %}
-                    <a href="{{ url_for('home', page=page_num )}}" class="btn btn-outline-info mb-4" >{{ page_num }}</a>
+                    <a href="{{ url_for('user_posts',user_id=user.id , page=page_num )}}" class="btn btn-outline-info mb-4" >{{ page_num }}</a>
 
                 {% endif %}
             {%else%}
