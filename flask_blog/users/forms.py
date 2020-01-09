@@ -1,9 +1,9 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import data_required, Length, Email, EqualTo, ValidationError
-from flask_blog.models import User, Post
+from flask_blog.models import User
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username',
@@ -30,13 +30,14 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
+
 class UpdateForm(FlaskForm):
     username = StringField('Username',
                            validators=[data_required(), Length(min=6, max=20)])
     email = StringField('Email',
                         validators=[data_required(), Email()])
     picture = FileField('Update Profile picture',
-                        validators=[FileAllowed(['jpg','png'])])
+                        validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Update')
 
     def validate_username(self, username):
@@ -52,7 +53,21 @@ class UpdateForm(FlaskForm):
                 raise ValidationError('email exist already!')
 
 
-class CreatePost(FlaskForm):
-    title = StringField('Title', validators=[data_required()])
-    content = TextAreaField('Content', validators=[data_required()])
-    submit = SubmitField('Post')
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email',
+                        validators=[data_required(), Email()])
+    submit = SubmitField('Request password reset')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError('email does not exist')
+
+
+class RequestPasswordReset(FlaskForm):
+    password = PasswordField('Password',
+                             validators=[data_required(), Length(min=8, max=32)])
+    confirm_password = PasswordField('Confirm password',
+                                     validators=[data_required(), EqualTo('password')])
+    submit = SubmitField('submit')

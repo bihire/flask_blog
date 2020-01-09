@@ -5,11 +5,11 @@
             class="rounded-circle article-img">
         <div class="media-body">
             <div class="article-metadata">
-                <a class="mr-2" href="{{ url_for('user_posts', user_id=post.author.user_id) }}">{{ post.author.username }}</a>
+                <a class="mr-2" href="{{ url_for('users.user_posts', user_id=post.author.user_id) }}">{{ post.author.username }}</a>
                 <small class="text-muted">{{ post.created_on.strftime('%Y-%m-%d') }}</small>
                 {% if post.author == current_user %}
                     <div>
-                        <a class="btn btn-secondary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id)}}">Update</a>
+                        <a class="btn btn-secondary btn-sm m-1" href="{{ url_for('posts.update_post', post_id=post.id)}}">Update</a>
                         <button class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete</button>
 
                         <!-- Modal -->
@@ -28,7 +28,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        <form action="{{ url_for('delete_post', post_id=post.id)}}" method="post">
+                                        <form action="{{ url_for('posts.delete_post', post_id=post.id)}}" method="post">
                                             <input type="submit" class="btn btn-danger" value="Delete">
                                         </form>
                                     </div>
